@@ -26,7 +26,7 @@ export default function Page() {
 
   useEffect(() => {
     fetchItems()
-    const id = setInterval(fetchItems, 15000)
+    const id = setInterval(fetchItems, 3000)
     return () => clearInterval(id)
   }, [fetchItems])
 
