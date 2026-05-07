@@ -10,13 +10,32 @@ type Item = {
   purchased: boolean
 }
 
-export function ItemRow({ item }: { item: Item }) {
+export function ItemRow({ item, onMutate }: { item: Item; onMutate: () => void }) {
   const [editing, setEditing] = useState(false)
 
-  const [, action, isPending] = useActionState(
+  const [, updateAction, isUpdatePending] = useActionState(
     async (_: null, formData: FormData) => {
       await updateItem(formData)
       setEditing(false)
+      await onMutate()
+      return null
+    },
+    null
+  )
+
+  const [, toggleAction] = useActionState(
+    async (_: null, formData: FormData) => {
+      await togglePurchased(formData)
+      await onMutate()
+      return null
+    },
+    null
+  )
+
+  const [, deleteAction] = useActionState(
+    async (_: null, formData: FormData) => {
+      await deleteItem(formData)
+      await onMutate()
       return null
     },
     null
@@ -25,7 +44,7 @@ export function ItemRow({ item }: { item: Item }) {
   if (editing) {
     return (
       <li className="flex items-center gap-2 rounded-lg border border-zinc-300 px-4 py-2 dark:border-zinc-700">
-        <form key="edit" action={action} className="flex flex-1 items-center gap-2">
+        <form key="edit" action={updateAction} className="flex flex-1 items-center gap-2">
           <input type="hidden" name="id" defaultValue={item._id} />
           <input
             name="name"
@@ -33,7 +52,7 @@ export function ItemRow({ item }: { item: Item }) {
             defaultValue={item.name}
             required
             autoFocus
-            disabled={isPending}
+            disabled={isUpdatePending}
             className="flex-1 rounded border border-zinc-200 px-2 py-1 outline-none focus:border-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900"
           />
           <input
@@ -42,20 +61,20 @@ export function ItemRow({ item }: { item: Item }) {
             min="1"
             defaultValue={item.quantity}
             required
-            disabled={isPending}
+            disabled={isUpdatePending}
             className="w-16 rounded border border-zinc-200 px-2 py-1 text-center outline-none focus:border-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900"
           />
           <button
             type="submit"
-            disabled={isPending}
+            disabled={isUpdatePending}
             className="text-sm font-medium text-zinc-900 hover:underline disabled:opacity-50 dark:text-zinc-100"
           >
-            {isPending ? 'Saving…' : 'Save'}
+            {isUpdatePending ? 'Saving…' : 'Save'}
           </button>
         </form>
         <button
           onClick={() => setEditing(false)}
-          disabled={isPending}
+          disabled={isUpdatePending}
           className="text-sm text-zinc-400 hover:underline disabled:opacity-50"
         >
           Cancel
@@ -66,7 +85,7 @@ export function ItemRow({ item }: { item: Item }) {
 
   return (
     <li className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
-      <form key="toggle" action={togglePurchased}>
+      <form key="toggle" action={toggleAction}>
         <input type="hidden" name="id" defaultValue={item._id} />
         <input type="hidden" name="purchased" value={String(!item.purchased)} />
         <button
@@ -85,7 +104,7 @@ export function ItemRow({ item }: { item: Item }) {
       >
         Edit
       </button>
-      <form action={deleteItem}>
+      <form action={deleteAction}>
         <input type="hidden" name="id" defaultValue={item._id} />
         <button
           type="submit"

@@ -1,7 +1,5 @@
 'use server'
 
-import { refresh } from 'next/cache'
-
 export async function togglePurchased(formData: FormData) {
   const id = formData.get('id') as string
   const purchased = formData.get('purchased') === 'true'
@@ -12,8 +10,6 @@ export async function togglePurchased(formData: FormData) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ purchased }),
   })
-
-  refresh()
 }
 
 export async function deleteItem(formData: FormData) {
@@ -21,8 +17,6 @@ export async function deleteItem(formData: FormData) {
   if (!id) return
 
   await fetch(`http://localhost:3001/items/${id}`, { method: 'DELETE' })
-
-  refresh()
 }
 
 export async function updateItem(formData: FormData) {
@@ -36,8 +30,6 @@ export async function updateItem(formData: FormData) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, quantity }),
   })
-
-  refresh()
 }
 
 export async function addItem(formData: FormData) {
@@ -50,6 +42,4 @@ export async function addItem(formData: FormData) {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ name, quantity }),
   })
-
-  refresh()
 }

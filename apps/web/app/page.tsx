@@ -1,5 +1,7 @@
+'use client'
+
+import { useCallback, useEffect, useState, useActionState } from 'react'
 import { addItem } from './actions'
-import { AutoRefresh } from './auto-refresh'
 import { ItemRow } from './item-row'
 
 type Item = {
@@ -9,16 +11,36 @@ type Item = {
   purchased: boolean
 }
 
-export default async function Page() {
-  const res = await fetch('http://localhost:3001/items')
-  const items: Item[] = await res.json()
+export default function Page() {
+  const [items, setItems] = useState<Item[]>([])
+
+  const fetchItems = useCallback(async () => {
+    try {
+      const res = await fetch('http://localhost:3001/items')
+      const data: Item[] = await res.json()
+      setItems(data)
+    } catch {
+      // backend not reachable yet
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchItems()
+    const id = setInterval(fetchItems, 15000)
+    return () => clearInterval(id)
+  }, [fetchItems])
+
+  const [, action] = useActionState(async (_: null, formData: FormData) => {
+    await addItem(formData)
+    await fetchItems()
+    return null
+  }, null)
 
   return (
     <main className="mx-auto max-w-md px-4 py-12">
-      <AutoRefresh intervalMs={15000} />
       <h1 className="mb-6 text-2xl font-semibold">Shopping List</h1>
 
-      <form action={addItem} className="mb-6 flex gap-2">
+      <form action={action} className="mb-6 flex gap-2">
         <input
           name="name"
           type="text"
@@ -47,7 +69,7 @@ export default async function Page() {
       ) : (
         <ul className="flex flex-col gap-2">
           {items.map((item) => (
-            <ItemRow key={item._id} item={item} />
+            <ItemRow key={item._id} item={item} onMutate={fetchItems} />
           ))}
         </ul>
       )}
