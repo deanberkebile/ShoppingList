@@ -32,7 +32,7 @@ export function ItemRow({ item, onMutate }: { item: Item; onMutate: () => void }
     null
   )
 
-  const [, deleteAction] = useActionState(
+  const [, deleteAction, isDeletePending] = useActionState(
     async (_: null, formData: FormData) => {
       await deleteItem(formData)
       await onMutate()
@@ -84,7 +84,7 @@ export function ItemRow({ item, onMutate }: { item: Item; onMutate: () => void }
   }
 
   return (
-    <li className="flex items-center gap-3 rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
+    <li className="relative flex items-center gap-3 overflow-hidden rounded-lg border border-zinc-200 px-4 py-3 dark:border-zinc-800">
       <form key="toggle" action={toggleAction}>
         <input type="hidden" name="id" defaultValue={item._id} />
         <input type="hidden" name="purchased" value={String(!item.purchased)} />
@@ -108,11 +108,17 @@ export function ItemRow({ item, onMutate }: { item: Item; onMutate: () => void }
         <input type="hidden" name="id" defaultValue={item._id} />
         <button
           type="submit"
-          className="text-sm text-red-400 hover:text-red-600"
+          disabled={isDeletePending}
+          className="text-sm text-red-400 hover:text-red-600 disabled:opacity-50"
         >
           Delete
         </button>
       </form>
+      {isDeletePending && (
+        <div className="absolute bottom-0 left-0 right-0 h-0.5 overflow-hidden bg-red-100">
+          <div className="h-full w-full animate-[delete-progress_1.2s_linear_infinite] bg-red-400" />
+        </div>
+      )}
     </li>
   )
 }
