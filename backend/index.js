@@ -2,16 +2,18 @@ require('dotenv').config()
 
 const express = require('express')
 const cors = require('cors')
-const { createClient } = require('@supabase/supabase-js')
+const { MongoClient, ObjectId } = require('mongodb')
 
 const app = express()
 app.use(express.json())
 app.use(cors())
 
-const supabase = createClient(
-  process.env.SUPABASE_URL,
-  process.env.SUPABASE_ANON_KEY
-)
+const client = new MongoClient(process.env.MONGODB_URI)
+let db
+
+function items() {
+  return db.collection('items')
+}
 
 // --- Routes ---
 
@@ -19,67 +21,69 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' })
 })
 
-// Get all items
 app.get('/items', async (req, res) => {
-  const { data, error } = await supabase
-    .from('items')
-    .select('*')
-    .order('created_at', { ascending: true })
-  if (error) return res.status(500).json({ error: error.message })
-  res.json(data.map(row => ({ ...row, _id: row.id })))
+  try {
+    const data = await items().find().sort({ created_at: 1 }).toArray()
+    res.json(data)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
-// Add an item
 app.post('/items', async (req, res) => {
-  const { name, quantity } = req.body
-  const { data, error } = await supabase
-    .from('items')
-    .insert({ name, quantity, purchased: false })
-    .select()
-    .single()
-  if (error) return res.status(500).json({ error: error.message })
-  res.json({ ...data, _id: data.id })
+  try {
+    const { name, quantity } = req.body
+    const doc = { name, quantity, purchased: false, created_at: new Date() }
+    const result = await items().insertOne(doc)
+    res.json({ ...doc, _id: result.insertedId })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
-// Edit an item's name and quantity
 app.put('/items/:id', async (req, res) => {
-  const { id } = req.params
-  const { name, quantity } = req.body
-  const { data, error } = await supabase
-    .from('items')
-    .update({ name, quantity })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) return res.status(500).json({ error: error.message })
-  res.json({ ...data, _id: data.id })
+  try {
+    const { name, quantity } = req.body
+    const doc = await items().findOneAndUpdate(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { name, quantity } },
+      { returnDocument: 'after' }
+    )
+    if (!doc) return res.status(404).json({ error: 'Not found' })
+    res.json(doc)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
-// Toggle purchased on/off
 app.patch('/items/:id', async (req, res) => {
-  const { id } = req.params
-  const { purchased } = req.body
-  const { data, error } = await supabase
-    .from('items')
-    .update({ purchased })
-    .eq('id', id)
-    .select()
-    .single()
-  if (error) return res.status(500).json({ error: error.message })
-  res.json({ ...data, _id: data.id })
+  try {
+    const { purchased } = req.body
+    const doc = await items().findOneAndUpdate(
+      { _id: new ObjectId(req.params.id) },
+      { $set: { purchased } },
+      { returnDocument: 'after' }
+    )
+    if (!doc) return res.status(404).json({ error: 'Not found' })
+    res.json(doc)
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
-// Delete an item
 app.delete('/items/:id', async (req, res) => {
-  const { id } = req.params
-  const { error } = await supabase.from('items').delete().eq('id', id)
-  if (error) return res.status(500).json({ error: error.message })
-  res.json({ deleted: true })
+  try {
+    await items().deleteOne({ _id: new ObjectId(req.params.id) })
+    res.json({ deleted: true })
+  } catch (err) {
+    res.status(500).json({ error: err.message })
+  }
 })
 
 // --- Start ---
 
 const PORT = process.env.PORT || 3001
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`)
+client.connect().then(() => {
+  db = client.db(process.env.MONGODB_DB || 'shopping-list')
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`))
 })
