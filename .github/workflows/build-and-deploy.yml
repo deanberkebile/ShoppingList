@@ -1,0 +1,32 @@
+name: Build and Deploy
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  hello:
+    name: Hello World
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Say hello
+        run: echo "Hello, World! The Build and Deploy workflow is running."
+
+      - name: Show environment info
+        run: |
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Triggered by: ${{ github.event_name }}"
+          echo "Runner OS: ${{ runner.os }}"
+
+      - name: Build step (placeholder)
+        run: echo "Build complete!"
+
+      - name: Deploy step (placeholder)
+        run: echo "Deploy complete!"
