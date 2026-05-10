@@ -55,6 +55,8 @@ jobs:
           tags: |
             deanberkebile/shopping-list-web:latest
             deanberkebile/shopping-list-web:${{ github.run_number }}
+          build-args: |
+            NEXT_PUBLIC_API_URL=https://shopping-list-api-126305010821.us-east4.run.app/
 
   deploy-api:
     name: Deploy API
