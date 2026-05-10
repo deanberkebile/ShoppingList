@@ -16,7 +16,7 @@ export default function Page() {
 
   const fetchItems = useCallback(async () => {
     try {
-      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'}/items`)
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/items`)
       const data: Item[] = await res.json()
       setItems(data)
     } catch {

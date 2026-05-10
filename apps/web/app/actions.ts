@@ -1,6 +1,6 @@
 'use server'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export async function togglePurchased(formData: FormData) {
   const id = formData.get('id') as string
