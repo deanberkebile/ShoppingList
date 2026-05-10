@@ -1,6 +1,15 @@
 'use server'
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+
+      // ----- Andy Debug code ----
+      console.log("???DEBUG.... url:")
+      console.log(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/items`)
+      console.log(`${process.env.NEXT_PUBLIC_API_URL}`)
+      console.log(process)
+      console.log("^^^^^^^^^^^^^^^^^^^^^^^")
+      // --------------------------
+      
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
 export async function togglePurchased(formData: FormData) {
   const id = formData.get('id') as string
