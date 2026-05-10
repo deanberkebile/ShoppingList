@@ -56,7 +56,7 @@ jobs:
             deanberkebile/shopping-list-web:latest
             deanberkebile/shopping-list-web:${{ github.run_number }}
           build-args: |
-            NEXT_PUBLIC_API_URL=https://shopping-list-api-126305010821.us-east4.run.app/
+            NEXT_PUBLIC_API_URL=https://shopping-list-api-126305010821.us-east4.run.app
 
   deploy-api:
     name: Deploy API
@@ -76,6 +76,8 @@ jobs:
           service: shopping-list-api
           region: us-east4
           image: docker.io/deanberkebile/shopping-list-api:${{ github.run_number }}
+          env_vars: |
+            FRONTEND_URL=https://shopping-list-web-126305010821.us-east4.run.app
 
   deploy-web:
     name: Deploy Web
