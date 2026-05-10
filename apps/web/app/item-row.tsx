@@ -55,15 +55,16 @@ export function ItemRow({ item, onMutate }: { item: Item; onMutate: () => void }
             disabled={isUpdatePending}
             className="flex-1 rounded border border-zinc-200 px-2 py-1 outline-none focus:border-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900"
           />
-          <input
+          <select
             name="quantity"
-            type="number"
-            min="1"
             defaultValue={item.quantity}
-            required
             disabled={isUpdatePending}
-            className="w-16 rounded border border-zinc-200 px-2 py-1 text-center outline-none focus:border-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900"
-          />
+            className="w-16 rounded border border-zinc-200 px-1 py-1 outline-none focus:border-zinc-400 disabled:opacity-50 dark:border-zinc-600 dark:bg-zinc-900"
+          >
+            {Array.from({ length: 20 }, (_, i) => i + 1).map((n) => (
+              <option key={n} value={n}>{n}</option>
+            ))}
+          </select>
           <button
             type="submit"
             disabled={isUpdatePending}
